@@ -3,42 +3,21 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package co.g2academy.bootcamp.entity;
+package co.g2academy.bootcamp.orderfullfillment.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
 
 /**
  *
  * @author cimiko
  */
-@Entity
-@Table(name = "T_CHECKOUT_ITEM")
 public class CheckoutItem implements Serializable {
-    
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID")
     private Integer id;
     
-    @ManyToOne(optional = false)
-    @JsonIgnore
-    private Checkout checkout;
-    
-    @ManyToOne(optional = false, cascade = CascadeType.ALL)
     private Product product;
     
-    @Column(name = "QUANTITY", nullable = false)
     private Integer quantity;
     
-    @Column(name = "PRICE", nullable = false)
     private Integer price;
 
     public Integer getId() {
@@ -47,14 +26,6 @@ public class CheckoutItem implements Serializable {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public Checkout getCheckout() {
-        return checkout;
-    }
-
-    public void setCheckout(Checkout checkout) {
-        this.checkout = checkout;
     }
 
     public Product getProduct() {

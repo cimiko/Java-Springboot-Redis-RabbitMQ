@@ -5,6 +5,7 @@
  */
 package co.g2academy.bootcamp.service.impl;
 
+import co.g2academy.bootcamp.AppConfig;
 import co.g2academy.bootcamp.entity.Checkout;
 import co.g2academy.bootcamp.entity.CheckoutItem;
 import co.g2academy.bootcamp.entity.Person;
@@ -16,6 +17,8 @@ import co.g2academy.bootcamp.Repository.PersonRepository;
 import co.g2academy.bootcamp.Repository.ProductRepository;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class CheckoutServiceImpl implements CheckoutService{
+    
+    private static final Logger LOG = LoggerFactory.getLogger(CheckoutServiceImpl.class);
     
     @Autowired
     private PersonRepository personRepository;
@@ -79,7 +84,8 @@ public class CheckoutServiceImpl implements CheckoutService{
         if(checkout != null){
             checkout.setStatus("PROCESSED");
             //send message to rabbit MQ
-            rabbitTemplate.convertAndSend(checkout);
+            LOG.info("sending message to AMQP");
+            rabbitTemplate.convertAndSend(AppConfig.QUEUE_NAME,checkout);
             //save to database after changing status
             checkoutRepository.save(checkout);
         }

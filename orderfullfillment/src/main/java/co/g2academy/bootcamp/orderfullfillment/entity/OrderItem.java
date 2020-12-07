@@ -3,11 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package co.g2academy.bootcamp.entity;
+package co.g2academy.bootcamp.orderfullfillment.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -21,25 +19,24 @@ import javax.persistence.Table;
  * @author cimiko
  */
 @Entity
-@Table(name = "T_CHECKOUT_ITEM")
-public class CheckoutItem implements Serializable {
+@Table(name = "T_ORDER_ITEM")
+public class OrderItem implements Serializable {
     
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private Integer id;
     
-    @ManyToOne(optional = false)
-    @JsonIgnore
-    private Checkout checkout;
+    @Column(name = "PRODUCT_NAME")
+    private String productName;
     
-    @ManyToOne(optional = false, cascade = CascadeType.ALL)
-    private Product product;
-    
-    @Column(name = "QUANTITY", nullable = false)
+    @Column(name = "QUANTITY")
     private Integer quantity;
     
-    @Column(name = "PRICE", nullable = false)
+    @Column(name = "PRICE")
     private Integer price;
+    
+    @ManyToOne
+    private Order order;
 
     public Integer getId() {
         return id;
@@ -49,20 +46,12 @@ public class CheckoutItem implements Serializable {
         this.id = id;
     }
 
-    public Checkout getCheckout() {
-        return checkout;
+    public String getProductName() {
+        return productName;
     }
 
-    public void setCheckout(Checkout checkout) {
-        this.checkout = checkout;
-    }
-
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
     public Integer getQuantity() {
@@ -80,7 +69,14 @@ public class CheckoutItem implements Serializable {
     public void setPrice(Integer price) {
         this.price = price;
     }
-    
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
+    }
     
     
     
