@@ -5,12 +5,14 @@
  */
 package co.g2academy.bootcamp.controller;
 
+import co.g2academy.bootcamp.Repository.BackgroundProcessRepository;
 import co.g2academy.bootcamp.entity.Product;
 import co.g2academy.bootcamp.Repository.ProductRepository;
 import co.g2academy.bootcamp.Repository.CachedProductRepository;
+import co.g2academy.bootcamp.entity.BackgroundProcess;
+import co.g2academy.bootcamp.service.StockOpnameService;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -34,9 +36,15 @@ public class ProductController {
 
     @Autowired
     private ProductRepository productRepository;
-    
+
     @Autowired
     private CachedProductRepository cachedProductRepository;
+
+    @Autowired
+    private BackgroundProcessRepository backgroundProcessRepository;
+
+    @Autowired
+    private StockOpnameService stockOpnameService;
 
     @GetMapping("/products")
     public ResponseEntity<Map<String, Object>> getProductByCategory(
@@ -46,7 +54,7 @@ public class ProductController {
             @RequestParam String sort) {
 
         return buildResponseEntity(cachedProductRepository.findByCategory(category, page, size, sort));
-        
+
     }
 
     @GetMapping("/search")
@@ -58,8 +66,8 @@ public class ProductController {
     ) {
         return buildResponseEntity(cachedProductRepository.findByNameContaining(query, page, size, sort));
     }
-    
-    private ResponseEntity<Map<String, Object>> buildResponseEntity(Page<Product> productPage){
+
+    private ResponseEntity<Map<String, Object>> buildResponseEntity(Page<Product> productPage) {
         Map<String, Object> response = new HashMap<>();
         response.put("product", productPage.getContent());
         response.put("currentPage", productPage.getNumber());
@@ -85,9 +93,9 @@ public class ProductController {
         productRepository.save(p);
         return "ok";
     }
-    
+
     @GetMapping("/import")
-    public String importProduct(){
+    public String importProduct() {
         for (int i = 0; i < 1_000_000; i++) {
             Product p = new Product();
             p.setName("Product ini digenerate dari import url yang ke-" + i);
@@ -97,6 +105,33 @@ public class ProductController {
             p.setStock(i);
             productRepository.save(p);
         }
+        return "ok";
+    }
+
+    @PostMapping("/restricted/stock-opname")
+    public String stockOpname() {
+        //1. check apakah stock opname process lagi jalan?
+        BackgroundProcess stockOpnameProcess
+                = backgroundProcessRepository.findByTypeAndStatus("STOCK_OPNAME", "ONPROGRESS");
+        //2. iya? kembalikan status "Stock opname on progress xx%"
+        if (stockOpnameProcess != null) {
+            Double progress = stockOpnameProcess.getCurrentProgress().doubleValue()
+                    * 100
+                    / stockOpnameProcess.getMaximumValue().doubleValue();
+
+            return "Stock opname on progress " + progress + "%";
+            
+        }
+        //3. tidak or null, kembalikan status "OK"
+        Long productCount = productRepository.count();
+        stockOpnameProcess = new BackgroundProcess();
+        stockOpnameProcess.setMaximumValue(productCount);
+        stockOpnameProcess.setCurrentProgress(0L);
+        stockOpnameProcess.setType("STOCK_OPNAME");
+        stockOpnameProcess.setStatus("ONPROGRESS");
+        backgroundProcessRepository.save(stockOpnameProcess);
+
+        stockOpnameService.stockOpname();
         return "ok";
     }
 
